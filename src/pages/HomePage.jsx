@@ -1,7 +1,5 @@
-import React from 'react'
 import '../index.css'
 import { useNavigate } from 'react-router-dom';
-import { Outlet } from 'react-router-dom';
 import {ArrowRight } from 'lucide-react'; 
 
 function HomePage () {

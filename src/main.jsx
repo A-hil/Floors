@@ -6,6 +6,7 @@ import './index.css'
 import App from './App.jsx'
 import HomePage from './pages/HomePage.jsx' 
 import SearchResultsPage from './pages/SearchResultsPage.jsx'
+import ViewCardPage from './pages/ViewCardPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -19,7 +20,8 @@ const router = createBrowserRouter([
       {
         path: "/search",
         element: <SearchResultsPage />, 
-      }
+      },
+      { path: "/property", element: <ViewCardPage /> }
     ]
   }
 ]);
