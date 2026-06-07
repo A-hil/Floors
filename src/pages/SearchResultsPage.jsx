@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {ArrowLeft, CircleUserRound } from 'lucide-react'; 
+import {mockOffers} from '../mockOffers';
+import { YMaps, Map } from '@pbe/react-yandex-maps';
 
 export default function SearchResultPage() {
   
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isLongTerm, setIsLongTerm] = useState(true);
   const navigate = useNavigate();
-  const id = searchParams.get('id') || '1'; 
-
+  // const id = searchParams.get('id') || '1'; 
 
     const mockDataUser ={  // Здесь в будущем буду проверяться данные для продовца
     author : "Кем является",
@@ -19,6 +22,24 @@ export default function SearchResultPage() {
   // текущий тип сделки
   const action = searchParams.get('action') || 'buy'; 
   const type = searchParams.get('type') || 'flat';
+
+  // Обработчик событий для динамеческого отображения 
+  const handleActionChange = (e) => {
+  const newAction = e.target.value; // 'buy' или 'rent'
+    setSearchParams({
+    // Скопировал с помощью сприд оператора значения что бы вручную не вводить кадждое 
+    ...Object.fromEntries(searchParams), 
+    action: newAction,
+    type: searchParams.get('type') || 'flat', 
+    //dayPriceRent: searchParams.get('dayPriceRent') || 'flat',
+  });
+};
+
+  //Буду применять фильтр для исключительных значений типа "rent" || "buy"
+  const filteredOffers = mockOffers.filter(offer => 
+    offer.forAction.includes(action)
+  );
+
   return (
 <div className="w-full mx-auto px-12 mt-24">
       <button 
@@ -35,10 +56,27 @@ export default function SearchResultPage() {
         
             <div className="flex flex-col md:flex-row
              gap-6 items-start">
+              
               {/*Фильтры*/}
             <div className="p-6 rounded-2xl flex
             flex-col gap-5 top-24 z-20 sticky
             w-full md:w-64 flex-shrink-0 bg-white">
+
+               {/* МИНИ-КАРТА ЯНДЕКС (Встроена в самый верх фильтров) */}
+              <div className="w-full h-32 rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                <YMaps>
+                  <Map 
+                    defaultState={{ 
+                      center: [55.751574, 37.573856], // Координаты центра (например, Москва)
+                      zoom: 10,                       // Масштаб карты
+                      controls: []                    // Убираем лишние кнопки, чтобы карта оставалась миниатюрной
+                    }} 
+                    width="100%" 
+                    height="100%" 
+                  />
+                </YMaps>
+              </div>
+
               <div className="flex items-center justify-between
               border-b border-gray-50 pb-3">
                 <h3 className="font-bold text-gray-900 
@@ -60,21 +98,52 @@ export default function SearchResultPage() {
                 <option>Дома, Дачи...</option>
                 <option>Коммерческая</option>
               </select>
-              <select className="w-full min-w-0 mt-1 px-2 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 text-gray-600 font-medium truncate">
-                <option>Купить</option>
-                <option>Снять</option>
+              <select 
+              value={action}
+              onChange={handleActionChange}
+              className="w-full min-w-0 mt-1 px-2 py-2
+              bg-white border border-gray-200 rounded-xl
+              text-xs focus:outline-none focus:border-blue-500
+              text-gray-600 font-medium truncate">
+                <option value="buy">Купить</option>
+                <option value="rent">Снять</option>
               </select>
             </div>
             {/* Срок аренды */}
             {action === 'rent' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-700">Срок аренды</label>
-                <div className="grid grid-cols-2 gap-1 bg-gray-100 p-0.5 rounded-xl text-center">
-                  <button className="py-1.5 text-xs font-semibold bg-white border border-gray-900 rounded-xl shadow-sm text-gray-900">На длит. срок</button>
-                  <button className="py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors">Посуточно</button>
-                </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-gray-700">Срок аренды</label>
+              <div className="grid grid-cols-2 gap-1 bg-gray-100 p-0.5 rounded-xl text-center">
+                
+                <button 
+                  type="button"
+                  onChange={handleActionChange}
+                  onClick={() => setIsLongTerm(true)}
+                  className={`py-1.5 text-xs font-semibold rounded-xl transition-all ${
+                    isLongTerm 
+                      ? 'bg-white border border-gray-900 shadow-sm text-gray-900' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  На длит. срок
+                </button>
+
+                <button 
+                  type="button"
+                  onClick={() => setIsLongTerm(false)}
+                  className={`py-1.5 text-xs font-semibold rounded-xl transition-all ${
+                    !isLongTerm 
+                      ? 'bg-white border border-gray-900 shadow-sm text-gray-900' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Посуточно
+                </button>
+
               </div>
-            )}
+            </div>
+          )}
+
 
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-gray-700">Где искать</label>
@@ -101,8 +170,28 @@ export default function SearchResultPage() {
                 Цена, {action === 'buy' ? '₽' : '₽ / мес.'}
               </label>
               <div className="flex items-center gap-2">
-                <input type="number" placeholder="от" className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition-colors" />
-                <input type="number" placeholder="до" className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-blue-500 transition-colors" />
+                <input type="number" 
+                placeholder="от"
+                value={action}
+                onChange={(e) => setSearchParams({ 
+                  ...Object.fromEntries(searchParams), 
+                  priceFrom: e.target.value 
+                })} 
+                className="w-full px-3 py-2 bg-gray-50
+                border border-gray-200 rounded-xl text-xs
+                focus:outline-none focus:border-blue-500
+                transition-colors" />
+                <input type="number"
+                placeholder="до"
+                value={action}
+                onChange={(e) => setSearchParams({ 
+                  ...Object.fromEntries(searchParams), 
+                  priceTo: e.target.value 
+                })}
+                className="w-full px-3 py-2 bg-gray-50
+                border border-gray-200 rounded-xl text-xs
+                focus:outline-none focus:border-blue-500
+                transition-colors" />
               </div>
             </div>
 
@@ -132,15 +221,19 @@ export default function SearchResultPage() {
                   </label>
                 </div>
               </div>
-            )} 
-
-            
+            )}        
           </div>
 
-              
+            {/*Блок с сеткой карточек*/}
 
-            <Link to={`/property/1?action=${action}&type=${type}`}
-            className='flex-1 w-full self-start h-min-10 '>
+          <div className='flex-1 flex flex-col gap-4'>
+            {filteredOffers.map(offer => (
+              <Link
+                key={offer.id}
+          
+                to={`/property/${offer.id}?action=${action}&type=${type}`}
+                className="block hover:shadow-lg transition-shadow rounded-2xl bg-white"
+              >
             {/* Блок для изображения */}
             <div className="grid grid-cols-1 md:grid-cols-3">
             <div className="relative h-48 md:h-full
@@ -214,21 +307,22 @@ export default function SearchResultPage() {
             text-left">
                 <div className="text-2xl font-semibold
                 text-gray-900">
-                2-комн. квартира, 54 м², 12/17 эт.
+                {offer.rooms} квартира, {offer.area} м², {offer.floor} эт.
                 </div>
                 <div className="text-xs text-gray-400
                 mt-2">
-                Москва, ул. Ленина, д. 10
+                {offer.address}
                 </div>
                 <div className="text-xl font-semibold
                 text-gray-900 mt-2">
-                  {action === 'buy' ? '12 500 000 ₽' : '45 000 ₽ / мес.'}
+                  {action === 'buy' 
+                  ? `${offer.priceBuy.toLocaleString()} ₽`
+                  : `${offer.priceRent.toLocaleString()} ₽ / мес.`}
 
                 {/* Блок, который нужен только при аренде */}
-
                   {action === 'rent' && (
                     <div className="text-xs text-gray-400">
-                      Залог 100%, без комиссии
+                      {offer.deposit}, {offer.commission}
                     </div>
                   )}
 
@@ -264,6 +358,9 @@ export default function SearchResultPage() {
             </div>
             
                 </Link>
+            ))}
+          </div>
+            
                 </div>
 </div>
   );

@@ -21,7 +21,7 @@ const router = createBrowserRouter([
         path: "/search",
         element: <SearchResultsPage />, 
       },
-      { path: "/property", element: <ViewCardPage /> }
+      { path: "/property/:id", element: <ViewCardPage /> }
     ]
   }
 ]);
