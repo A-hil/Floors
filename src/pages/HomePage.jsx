@@ -1,71 +1,161 @@
-import '../index.css'
+import '../index.css';
 import { useNavigate } from 'react-router-dom';
-import {ArrowRight } from 'lucide-react'; 
+import { ArrowRight, Loader2  } from 'lucide-react'; 
+import { useState, useEffect } from 'react';
 
-function HomePage () {
-const navigate = useNavigate();
-const RecomendatedSearch = [
+function HomePage() {
+  const navigate = useNavigate();
+  const RecomendatedSearch = [
     { id: 1, text: "Купить квартиру", action: "buy", type: "flat" },
     { id: 2, text: "Снять надолго", action: "rent", type: "flat" },
     { id: 3, text: "Снять посуточно", action: "daily", type: "flat" },
     { id: 4, text: "Купить дом", action: "buy", type: "house" },
     { id: 5, text: "Купить участок", action: "buy", type: "land" }
   ];
-    return (
-        <>
-    <div className="w-full min-h-screen bg-gray-50">
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [itemList, setItemList] = useState([]); 
+  const [isLoading, setIsLoading] = useState(false);
+
+    const handleSearchChange = (value) => {
+    setSearchTerm(value);
+    
+    if (!value.trim()) {
+        setItemList([]);
+        setIsLoading(false); 
+    } else {
+        setIsLoading(true); 
+    }
+    };
+
+    useEffect(() => {
+    if (!searchTerm.trim()) return;
+
+// Запускаем отложенный таймер
+const delayDebounceFn = setTimeout(async () => {
+  try {
+    const response = await fetch(`https://6a2335205c610353286ac738.mockapi.io/api/v1/realty?address=${searchTerm}`);
+    const data = await response.json();
+    
+    // ИСПРАВЛЕНО: Безопасное сохранение данных
+    // Если MockAPI вернул массив, берем первые 5 элементов. Если строку "Not found" — ставим пустой массив []
+    if (Array.isArray(data)) {
+      setItemList(data.slice(0, 5));
+    } else {
+      setItemList([]); // Сюда код зайдет, если MockAPI вернул "Not found"
+    }
+
+  } catch (error) {
+    console.error("Ошибка при загрузке данных:", error);
+    setItemList([]); // В случае любой сетевой ошибки тоже сохраняем пустой массив, чтобы сайт не падал
+  } finally {
+    setIsLoading(false);
+  }
+}, 500);
+    //ФУНКЦИЯ ОЧИСТКИ 
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  return (
+    <>
+      <div className="w-full min-h-screen bg-gray-50">
         <div className='w-full h-[90vh] relative overflow-hidden flex flex-col items-center justify-center px-4'>
-        <img 
-          src={"src/assets/main-banner-new-brand.jpg"} 
-          className="absolute inset-0 w-full h-full object-cover z-0" 
-          alt="Главный баннер" 
-        />
-    <div className="w-full max-w-3xl bg-white p-5 rounded-3xl shadow-2xl border border-gray-100 relative z-20 mt-16">
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-            <div className="flex-1 relative flex items-center">
-                <svg 
-                 className="absolute left-4 w-5 h-5 text-gray-400" 
-                viewBox="0 0 16 16" 
-                fill="none" 
-                >
-                    <path 
-                    fillRule="evenodd" 
-                    clipRule="evenodd" 
-                    d="M7.146.646a6.5 6.5 0 1 0 3.835 11.75l2.958 2.958 1.415-1.415-2.959-2.958A6.5 6.5 0 0 0 7.146.646Zm-4.5 6.5a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Z" 
-                    fill="currentColor"
-                    />
-                </svg>
-                <input 
-                    type="text" 
-                    placeholder="Купить квартиру с большой кухней рядом с метро" 
-                    className="w-full pl-10 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
-                />
-                <button className="absolute bg-blue-600 hover:bg-blue-700 text-white font-medium px-2 py-1 rounded-2xl transition-colors shadow-md text-sm flex items-center justify-center gap-2 right-4">
-                <ArrowRight className="w-4 h-4" />
-                </button>
-                </div>
-                
+          <img 
+            src={"src/assets/main-banner-new-brand.jpg"} 
+            className="absolute inset-0 w-full h-full object-cover z-0" 
+            alt="Главный баннер" 
+          />
+          
+          <div className="w-full max-w-3xl bg-white p-5 rounded-3xl shadow-2xl border border-gray-100 relative z-20 mt-16">
+            
+            {/* 1. Поисковый контейнер */}
+            <div className="flex flex-col gap-2 mb-4 relative">
+              <div className="w-full relative flex items-center">
+                  {isLoading ? (
+    <Loader2 className="absolute left-4 w-5 h-5 text-blue-500 animate-spin" />
+  ) : (
+    <svg 
+      className="absolute left-4 w-5 h-5 text-gray-400 pointer-events-none" 
+      viewBox="0 0 16 16" 
+      fill="none" 
+    >
+      <path 
+        fillRule="evenodd" 
+        clipRule="evenodd" 
+        d="M7.146.646a6.5 6.5 0 1 0 3.835 11.75l2.958 2.958 1.415-1.415-2.959-2.958A6.5 6.5 0 0 0 7.146.646Zm-4.5 6.5a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Z" 
+        fill="currentColor"
+      />
+    </svg>
+  )}
+  
+  <input 
+    type="text" 
+    placeholder="Введите город или улицу (например, Ленина или Москва)" 
+    className="w-full pl-10 pr-14 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+    value={searchTerm}
+    onChange={(e) => handleSearchChange(e.target.value)} // ИСПРАВЛЕНО: Привязали handleSearchChange
+  />
+
+  <button 
+    onClick={() => navigate(`/search?query=${searchTerm}`)}
+    className="absolute right-3 bg-blue-600 hover:bg-blue-700 text-white font-medium p-2 rounded-xl transition-colors shadow-md text-sm flex items-center justify-center"
+  >
+    <ArrowRight className="w-4 h-4" />
+  </button>
+              </div>
+
+              {/* Выпадающий список живого поиска */}
+              {itemList.length > 0 && (
+                <ul className='absolute top-full left-0 right-0
+                mt-2 bg-white rounded-xl p-2 w-full
+                max-h-60 overflow-y-auto z-50 shadow-xl'>
+                  {itemList.map((item) => {
+                    // Формируем красивую строку для отображения в списке
+                    const displayText = `${item.rooms}, ${item.area} кв.м, ${item.address}`;
+                    
+                    return (
+                      <li 
+                        key={item.id} 
+                         className='mb-1 hover:bg-slate-100
+                         rounded-md p-2 block cursor-pointer
+                         transition-colors text-sm relative
+                         after:absolute after:bottom-0
+                         after:left-1/2 after:-translate-x-1/2
+                         after:w-1/2 after:h-0.5
+                         after:bg-gray-300 after:scale-x-0
+                         hover:after:scale-x-100 after:transition-transform
+                         after:duration-300 after:origin-center'
+                        onClick={() => {
+                          setSearchTerm(item.address); // Записываем адрес в инпут при клике
+                          navigate(`/offers/${item.id}`); 
+                        }}
+                      >
+                        {displayText}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
 
             {/* 2. Теги быстрого поиска по рекомендациям */}
             <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-50">
-                
-                {RecomendatedSearch.map((item) => (
-                    <button 
-                    key={item.id}
-                    onClick={() => navigate(`/search?action=${item.action}&type=${item.type}`)}
-                    className="px-4 py-2 bg-blue-50/60 hover:bg-blue-50 text-blue-600 font-medium text-xs sm:text-sm rounded-xl transition-colors whitespace-nowrap active:scale-95"
-                    >
-                    {item.text} 
-                    </button>
-                ))}
+              {RecomendatedSearch.map((item) => (
+                <button 
+                  key={item.id}
+                  onClick={() => navigate(`/search?action=${item.action}&type=${item.type}`)}
+                  className="px-4 py-2 bg-blue-50/60 hover:bg-blue-50 text-blue-600 font-medium text-xs sm:text-sm rounded-xl transition-colors whitespace-nowrap active:scale-95"
+                >
+                  {item.text} 
+                </button>
+              ))}
+            </div>
+          </div>
+
         </div>
-        </div>
-    </div>
-</div>
-        </>
-    );
+      </div>
+    </>
+  );
 }
 
 export default HomePage;
-  

@@ -9,6 +9,7 @@ export default function SearchResultPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLongTerm, setIsLongTerm] = useState(true);
   const navigate = useNavigate();
+  
   // const id = searchParams.get('id') || '1'; 
 
     const mockDataUser ={  // Здесь в будущем буду проверяться данные для продовца
@@ -60,7 +61,7 @@ export default function SearchResultPage() {
               {/*Фильтры*/}
             <div className="p-6 rounded-2xl flex
             flex-col gap-5 top-24 z-20 sticky
-            w-full md:w-64 flex-shrink-0 bg-white">
+            w-full md:w-64 shrink-0 bg-white">
 
                {/* МИНИ-КАРТА ЯНДЕКС (Встроена в самый верх фильтров) */}
               <div className="w-full h-32 rounded-xl overflow-hidden shadow-sm border border-gray-100">
@@ -230,14 +231,13 @@ export default function SearchResultPage() {
             {filteredOffers.map(offer => (
               <Link
                 key={offer.id}
-          
                 to={`/property/${offer.id}?action=${action}&type=${type}`}
                 className="block hover:shadow-lg transition-shadow rounded-2xl bg-white"
               >
             {/* Блок для изображения */}
             <div className="grid grid-cols-1 md:grid-cols-3">
             <div className="relative h-48 md:h-full
-            min-h-[192px] bg-gray-300 flex items-center
+            min-h-48 bg-gray-300 flex items-center
             justify-center text-gray-400 rounded-2xl">
                  {/* Побочные фото-карточки снизу*/}
                 <div className="absolute bottom-3 left-3
@@ -247,7 +247,7 @@ export default function SearchResultPage() {
                     {/* Маленькая карточка 1 */}
                     <div className="w-12 h-12 md:w-7 md:h-7
                     bg-gray-300 rounded-lg border-2
-                     flex-shrink-0
+                    shrink-0
                     cursor-pointer overflow-hidden
                     shadow-md hover:opacity-90 hover:border-blue-500
                     transition-opacity">
@@ -257,7 +257,7 @@ export default function SearchResultPage() {
                     
                     <div className="w-12 h-12 md:w-7 md:h-7
                     bg-gray-300 rounded-lg border-2
-                     flex-shrink-0
+                     shrink-0
                     cursor-pointer overflow-hidden
                     shadow-md hover:opacity-90 hover:border-blue-500
                     transition-opacity">
@@ -267,7 +267,7 @@ export default function SearchResultPage() {
 
                     <div className="w-12 h-12 md:w-7 md:h-7
                     bg-gray-300 rounded-lg border-2
-                     flex-shrink-0
+                    shrink-0
                     cursor-pointer overflow-hidden
                     shadow-md hover:opacity-90 hover:border-blue-500
                     transition-opacity">
@@ -277,7 +277,7 @@ export default function SearchResultPage() {
 
                     <div className="w-12 h-12 md:w-7 md:h-7
                     bg-gray-300 rounded-lg border-2
-                     flex-shrink-0
+                     shrink-0
                     cursor-pointer overflow-hidden
                     shadow-md hover:opacity-90 hover:border-blue-500
                     transition-opacity">
@@ -287,7 +287,7 @@ export default function SearchResultPage() {
 
                     <div className="relative w-12 h-12 md:w-7 md:h-7
                     bg-gray-300 rounded-lg border-2 border-transparent
-                    flex-shrink-0 cursor-pointer overflow-hidden shadow-md
+                    shrink-0 cursor-pointer overflow-hidden shadow-md
                     hover:opacity-90 hover:border-blue-500
                     transition-all duration-200">
                     <div className="w-full h-full bg-gray-400"></div>
