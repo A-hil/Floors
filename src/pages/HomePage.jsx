@@ -34,25 +34,24 @@ function HomePage() {
 // Запускаем отложенный таймер
 const delayDebounceFn = setTimeout(async () => {
   try {
-    const response = await fetch(`https://6a2335205c610353286ac738.mockapi.io/api/v1/realty?address=${searchTerm}`);
+    const response = await fetch(`https://6a2335205c610353286ac738.mockapi.io/api/v1/mockData?search=${encodeURIComponent(searchTerm)}`);
     const data = await response.json();
+
     
-    // ИСПРАВЛЕНО: Безопасное сохранение данных
-    // Если MockAPI вернул массив, берем первые 5 элементов. Если строку "Not found" — ставим пустой массив []
+
     if (Array.isArray(data)) {
       setItemList(data.slice(0, 5));
     } else {
-      setItemList([]); // Сюда код зайдет, если MockAPI вернул "Not found"
+      setItemList([]); 
     }
 
   } catch (error) {
     console.error("Ошибка при загрузке данных:", error);
-    setItemList([]); // В случае любой сетевой ошибки тоже сохраняем пустой массив, чтобы сайт не падал
+    setItemList([]);
   } finally {
     setIsLoading(false);
   }
-}, 500);
-    //ФУНКЦИЯ ОЧИСТКИ 
+}, 500); 
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
@@ -90,15 +89,18 @@ const delayDebounceFn = setTimeout(async () => {
   
   <input 
     type="text" 
-    placeholder="Введите город или улицу (например, Ленина или Москва)" 
+    placeholder="Введите город или улицу" 
     className="w-full pl-10 pr-14 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 transition-colors text-sm"
     value={searchTerm}
-    onChange={(e) => handleSearchChange(e.target.value)} // ИСПРАВЛЕНО: Привязали handleSearchChange
+    onChange={(e) => handleSearchChange(e.target.value)} 
   />
 
   <button 
     onClick={() => navigate(`/search?query=${searchTerm}`)}
-    className="absolute right-3 bg-blue-600 hover:bg-blue-700 text-white font-medium p-2 rounded-xl transition-colors shadow-md text-sm flex items-center justify-center"
+    className="absolute right-3 bg-blue-600
+    hover:bg-blue-700 text-white font-medium p-2
+    rounded-xl transition-colors shadow-md text-sm
+    flex items-center justify-center"
   >
     <ArrowRight className="w-4 h-4" />
   </button>
@@ -126,8 +128,12 @@ const delayDebounceFn = setTimeout(async () => {
                          hover:after:scale-x-100 after:transition-transform
                          after:duration-300 after:origin-center'
                         onClick={() => {
-                          setSearchTerm(item.address); // Записываем адрес в инпут при клике
-                          navigate(`/offers/${item.id}`); 
+                          // Записываем адрес в инпут
+                          setSearchTerm(item.address); 
+                          
+                          // Переходим на страницу поиска и передаем адрес в URL-параметр "query"
+                          // encodeURIComponent нужен, чтобы пробелы и русские буквы корректно закодировались в URL
+                          navigate(`/search?query=${encodeURIComponent(item.address)}`);
                         }}
                       >
                         {displayText}

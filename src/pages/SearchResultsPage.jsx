@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link  } from 'react-router-dom';
 import {ArrowLeft, CircleUserRound } from 'lucide-react'; 
 import {mockOffers} from '../mockOffers';
 import { YMaps, Map } from '@pbe/react-yandex-maps';
@@ -10,7 +10,27 @@ export default function SearchResultPage() {
   const [isLongTerm, setIsLongTerm] = useState(true);
   const navigate = useNavigate();
   
-  // const id = searchParams.get('id') || '1'; 
+  const searchQuery = searchParams.get('query') || ''; 
+
+   useEffect(() => {
+    // Делаем запрос к MockAPI, передавая параметр поиска, который мы кликнули
+    const fetchFilteredData = async () => {
+      try {
+        // Используем встроенный в MockAPI поиск (?search=...)
+        const response = await fetch(
+          `https://mockapi.io{searchQuery}`
+        );
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error("Ошибка поиска:", error);
+      }
+    };
+
+    if (searchQuery) {
+      fetchFilteredData();
+    }
+  }, [searchQuery]);
 
     const mockDataUser ={  // Здесь в будущем буду проверяться данные для продовца
     author : "Кем является",
@@ -52,7 +72,7 @@ export default function SearchResultPage() {
       </button>
     
         <h1>
-          {action === 'buy' ? 'Покупка' : 'Аренда'} {type === 'flat' ? 'квартир' : 'недвижимости'}
+          {searchQuery}
         </h1>
         
             <div className="flex flex-col md:flex-row
