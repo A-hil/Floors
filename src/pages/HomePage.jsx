@@ -34,16 +34,14 @@ function HomePage() {
 // Запускаем отложенный таймер
 const delayDebounceFn = setTimeout(async () => {
   try {
-    const response = await fetch(`https://6a2335205c610353286ac738.mockapi.io/api/v1/mockData?search=${encodeURIComponent(searchTerm)}`);
-    const data = await response.json();
+    const response = await fetch(`https://student-college-api.minofev.tech/api/ads?search=${encodeURIComponent(searchTerm)}`);
+    const results = await response.json();
 
-    
-
-    if (Array.isArray(data)) {
-      setItemList(data.slice(0, 5));
-    } else {
-      setItemList([]); 
-    }
+  if (results && Array.isArray(results.data)) {
+  setItemList(results.data); 
+} else {
+  setItemList([]);
+}
 
   } catch (error) {
     console.error("Ошибка при загрузке данных:", error);
@@ -113,11 +111,15 @@ const delayDebounceFn = setTimeout(async () => {
                 max-h-60 overflow-y-auto z-50 shadow-xl'>
                   {itemList.map((item) => {
                     // Формируем красивую строку для отображения в списке
-                    const displayText = `${item.rooms}, ${item.area} кв.м, ${item.address}`;
+                    const roomsText = item.room_count ? `${item.room_count}-комн.` : 'Квартира';
+                    const areaText = item.area_total ? `, ${item.area_total} м²` : '';
+                    const addressText = item.address ? `, ${item.address}` : ', Адрес не указан';
+
+                    const displayText = `${roomsText}${areaText}${addressText}`;
                     
                     return (
                       <li 
-                        key={item.id} 
+                        key={item.ad_id} 
                          className='mb-1 hover:bg-slate-100
                          rounded-md p-2 block cursor-pointer
                          transition-colors text-sm relative
@@ -128,12 +130,13 @@ const delayDebounceFn = setTimeout(async () => {
                          hover:after:scale-x-100 after:transition-transform
                          after:duration-300 after:origin-center'
                         onClick={() => {
+                          const currentAddress = item.address || '';
+                                      
                           // Записываем адрес в инпут
-                          setSearchTerm(item.address); 
-                          
-                          // Переходим на страницу поиска и передаем адрес в URL-параметр "query"
-                          // encodeURIComponent нужен, чтобы пробелы и русские буквы корректно закодировались в URL
-                          navigate(`/search?query=${encodeURIComponent(item.address)}`);
+                          setSearchTerm(currentAddress); 
+                                      
+                          // Переходим на страницу поиска
+                          navigate(`/search?query=${encodeURIComponent(currentAddress)}`);
                         }}
                       >
                         {displayText}

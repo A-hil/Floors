@@ -1,10 +1,21 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'; // Импортируем Outlet для рендера страниц
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Outlet } from 'react-router-dom';
 import './App.css'
 import './index.css'
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
+      retry: 1,                 // В случае ошибки переотправить запрос только 1 раз
+    },
+  },
+});
+
 function App() {
+  
   return (
+    <QueryClientProvider client={queryClient}>
     <div className="w-full min-h-screen bg-gray-50">
       {/* ШАПКА  */}
       <header className="fixed top-0 left-0 right-0 z-50 p-4">
@@ -46,6 +57,7 @@ function App() {
         <Outlet />
       </main>
     </div>
+    </QueryClientProvider>
   )
 }
 
