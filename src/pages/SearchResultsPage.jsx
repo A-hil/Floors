@@ -7,18 +7,30 @@ import { YMaps, Map } from '@pbe/react-yandex-maps';
 export default function SearchResultPage() {
   const [itemList, setItemList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFirstLoadDone, setIsFirstLoadDone] = useState(false); 
+  const [isFirstLoadDone, setIsFirstLoadDone] = useState(false);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLongTerm, setIsLongTerm] = useState(true);
   const navigate = useNavigate();
   
-  const searchQuery = searchParams.get('query') || ''; 
+  const searchQuery = searchParams.get('query') || '';
+  const dealType = searchParams.get('deal_type') || '';     // Считает "sale" или "rent"
+  const realtyType = searchParams.get('realty_type') || '';
 
    useEffect(() => {
     // Делаем запрос к MockAPI, передавая параметр поиска, который мы кликнули
     const fetchFilteredresults = async () => {
       try {
         setIsLoading(true);
+
+        const params = new URLSearchParams();
+        
+        if (searchQuery.trim() !== '') params.append('search', searchQuery.trim());
+        if (dealType) params.append('deal_type', dealType);
+        if (realtyType) params.append('realty_type', realtyType);
+
+        const url = `https://minofev.tech{params.toString()}`;
+        console.log("React отправляет запрос по адресу:", url);
 
         const response = await fetch(`https://student-college-api.minofev.tech/api/ads?search=${encodeURIComponent(searchQuery)}`);
         const results = await response.json();
@@ -38,10 +50,10 @@ export default function SearchResultPage() {
       }
     };
 
-    if (searchQuery) {
+    if (searchQuery.trim() !== '' || dealType || realtyType) {
       fetchFilteredresults();
     }
-  }, [searchQuery]);
+  }, [searchQuery, dealType, realtyType]);
 
 
 

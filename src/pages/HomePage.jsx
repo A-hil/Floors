@@ -6,11 +6,10 @@ import { useState, useEffect } from 'react';
 function HomePage() {
   const navigate = useNavigate();
   const RecomendatedSearch = [
-    { id: 1, text: "Купить квартиру", action: "buy", type: "flat" },
-    { id: 2, text: "Снять надолго", action: "rent", type: "flat" },
-    { id: 3, text: "Снять посуточно", action: "daily", type: "flat" },
-    { id: 4, text: "Купить дом", action: "buy", type: "house" },
-    { id: 5, text: "Купить участок", action: "buy", type: "land" }
+    { id: 1, text: "Купить квартиру", deal_type: "sale", realty_type: "flat" },
+    { id: 2, text: "Снять надолго", deal_type: "rent", realty_type: "flat" },
+    { id: 3, text: "Купить дом", deal_type: "sale", realty_type: "flat" },
+    { id: 4, text: "Купить участок", deal_type: "sale", realty_type: "flat" }
   ];
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -152,7 +151,7 @@ const delayDebounceFn = setTimeout(async () => {
               {RecomendatedSearch.map((item) => (
                 <button 
                   key={item.id}
-                  onClick={() => navigate(`/search?action=${item.action}&type=${item.type}`)}
+                  onClick={() => navigate(`/search?deal_type=${item.deal_type}&realty_type=${item.realty_type}`)}
                   className="px-4 py-2 bg-blue-50/60 hover:bg-blue-50 text-blue-600 font-medium text-xs sm:text-sm rounded-xl transition-colors whitespace-nowrap active:scale-95"
                 >
                   {item.text} 
