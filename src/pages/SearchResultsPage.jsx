@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import {ArrowLeft, CircleUserRound } from 'lucide-react'; 
+import {ArrowLeft, CircleUserRound, SearchX } from 'lucide-react'; 
 import {mockOffers} from '../mockOffers';
 import { YMaps, Map } from '@pbe/react-yandex-maps';
 
@@ -32,7 +32,7 @@ export default function SearchResultPage() {
         const url = `https://minofev.tech{params.toString()}`;
         console.log("React отправляет запрос по адресу:", url);
 
-        const response = await fetch(`https://student-college-api.minofev.tech/api/ads?search=${encodeURIComponent(searchQuery)}`);
+        const response = await fetch(url);
         const results = await response.json();
 
         if (results && Array.isArray(results.data)) {
@@ -384,9 +384,10 @@ export default function SearchResultPage() {
             </div>
             ) : (
             isFirstLoadDone && (
-              <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-                <span className="text-4xl mb-3">🔍</span>
-                <h3 className="text-lg font-semibold text-gray-900">Ничего не найдено</h3>
+              <div className="flex flex-col items-center
+              justify-center py-20 text-center p-8 w-full h-screen">
+                <SearchX className="w-16 h-16 text-gray-400" />
+                <h3 className="text-lg font-semibold text-gray-600">Ничего не найдено</h3>
                 <p className="text-gray-400 text-sm max-w-xs mt-1">
                   Попробуйте изменить запрос или скорректировать фильтры поиска
                 </p>
