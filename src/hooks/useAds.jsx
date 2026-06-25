@@ -7,6 +7,7 @@ export function useAds(geoName) {
 
     // 2. Сама функция запроса к вашей базе данных
     queryFn: async () => {
+      console.log('Запрос к API с адресом:', geoName);
       const response = await fetch(
         `https://student-college-api.minofev.tech/api/ads?address=${encodeURIComponent(geoName)}`
       );

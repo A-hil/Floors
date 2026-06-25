@@ -27,7 +27,6 @@ function HomePage() {
     staleTime: 5 * 60 * 1000,
   });
 
-    // Если geoData еще нет, передастся undefined, и хук внутри себя автоматически НЕ пойдет в сеть благодаря свойству enabled.
 // Передаем два аргумента: адрес Яндекса и сырой ввод
 const { data: itemList = [], isFetching: isSearchingDB } = useAds(geoData?.formattedName, debouncedSearchTerm);
 
@@ -37,20 +36,33 @@ const { data: itemList = [], isFetching: isSearchingDB } = useAds(geoData?.forma
   setSearchTerm(value); // Просто обновляем стейт ввода, всё остальное сделает библиотека
 };
 
+console.log('geoData?.formattedName:', geoData?.formattedName);
+console.log('debouncedSearchTerm:', debouncedSearchTerm);
+
   return (
     <>
-      <div className="w-full min-h-screen bg-gray-50">
-        <div className='w-full h-[90vh] relative overflow-hidden flex flex-col items-center justify-center px-4'>
+      <div className="w-full min-h-screen bg-gray-50 relative">
+        <div className='w-full h-[90vh] -mt-32
+        relative overflow-hidden flex flex-col
+        items-center justify-center px-4'>
           <img 
-            src={"src/assets/main-banner-new-brand.jpg"} 
-            className="absolute inset-0 w-full h-full object-cover z-0" 
-            alt="Главный баннер" 
-          />
-          
-          <div className="w-full max-w-3xl bg-white p-5 rounded-3xl shadow-2xl border border-gray-100 relative z-20 mt-16">
+  src="src/assets/main-banner-new-brand.jpg" 
+  className="absolute inset-0 w-full h-full object-cover z-0" 
+  alt="Главный баннер" 
+/>
+{/* Слой затемнения */}
+<div className="absolute inset-0 bg-black/10 z-1 pointer-events-none" />
+            <h1 className='text-white text-5xl z-1 font-semibold '>
+              Поиск недвижимости на Floors
+            </h1>
+          <div className="w-full max-w-3xl
+          bg-white p-5 rounded-3xl shadow-2xl border
+          border-gray-100 relative z-20 mt-5">
             
             {/* 1. Поисковый контейнер */}
+            
             <div className="flex flex-col gap-2 mb-4 relative">
+              
               <div className="w-full relative flex items-center">
                   {isSearching ? (
     <Loader2 className="absolute left-4 w-5 h-5 text-blue-500 animate-spin" />
@@ -69,6 +81,7 @@ const { data: itemList = [], isFetching: isSearchingDB } = useAds(geoData?.forma
     </svg>
   )}
   
+
   <input 
     type="text" 
     placeholder="Введите город или улицу" 

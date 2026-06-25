@@ -1,64 +1,179 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Outlet } from 'react-router-dom';
-import './App.css'
-import './index.css'
+import { Outlet, Link } from 'react-router-dom';
+import { 
+  Sparkles, 
+  CopyPlus, 
+  MessageSquare, 
+  Heart, 
+  SearchCode, 
+  Bell, 
+  Plus 
+} from 'lucide-react';
+import { useFavorites } from './hooks/useFavorites';
+import './App.css';
+import './index.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
-      retry: 1,                 // В случае ошибки переотправить запрос только 1 раз
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
     },
   },
 });
 
-function App() {
-  
-  return (
-    <QueryClientProvider client={queryClient}>
-    <div className="w-full min-h-screen bg-gray-50">
-      {/* ШАПКА  */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-4">
-        <div className="max-w-6xl mx-auto h-16 px-6 bg-white/90 backdrop-blur-md border border-gray-100 shadow-lg rounded-2xl flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2 font-bold text-2xl text-blue-600 tracking-tight cursor-pointer">
-              <span className="flex items-center gap-2 font-black text-2xl tracking-tight select-none cursor-pointer">
-                <svg 
-                  className="w-7 h-8 text-blue-600 transform scale-x-125 origin-left" 
-                  viewBox="0 0 24 32" 
-                  fill="currentColor" 
-                  xmlns="http://w3.org"
-                >
-                  <path d="M 2,2 L 22,2 L 19,7 L 8,7 L 8,13 L 18,13 L 15,18 L 8,18 L 8,30 L 2,30 Z" />
-                </svg>
-                <span className="text-gray-900 font-extrabold -ml-1">loors</span>
-              </span>
-            </div>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-              <a href="#" className="hover:text-blue-600 transition-colors text-blue-600 font-semibold">Аренда</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Продажа</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Новостройки</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Ипотека</a>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl transition-all shadow-sm">
-              + Разместить объявление
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
-              Войти
-            </button>
-          </div>
-        </div>
-      </header> 
+function NavigationBar() {
+  const { favorites } = useFavorites();
 
-      {/* 2. ДИНАМИЧЕСКИЙ КОНТЕНТ (сюда будут подставляться HomePage или SearchResultsPage) */}
-      <main className="w-full">
-        <Outlet />
-      </main>
-    </div>
-    </QueryClientProvider>
-  )
+  return (
+    <header className="fixed top-0 left-0
+    right-0 z-50 bg-white border-b
+    border-gray-100 shadow-sm ">
+      <div className="w-full max-w-7xl
+      mx-auto px-8 flex
+      flex-col">
+        {/* ВЕРХНЯЯ ПАНЕЛЬ */}
+        <div className="h-16 flex items-center
+        justify-between gap-4">
+          
+          {/* Логотип */}
+          <Link to="/" className="flex items-center
+          justify-center shrink-0">
+            <img 
+              src="../src/assets/Floors_icon.png" 
+              alt="Логотип Floors"
+              className="h-24 w-auto object-contain" 
+            />
+          </Link>
+
+          {/* Правая часть с инструментами */}
+          <div className="flex items-center gap-2
+          sm:gap-4 ml-auto">
+            
+            {/* Баббл "Умный помощник" */}
+            <button className="hidden md:flex
+            items-center gap-2 bg-blue-50/60
+            hover:bg-blue-50 text-blue-600
+            px-3 py-1.5 rounded-full text-xs
+            font-semibold transition-colors">
+              <Sparkles className="w-3.5 h-3.5
+              fill-blue-600" />
+              <span>Умный помощник</span>
+            </button>
+
+            {/* Группа иконок из Lucide */}
+            <div className="flex items-center
+            gap-1 sm:gap-2 text-blue-600">
+
+                <button className="p-2 hover:bg-gray-50
+              rounded-lg transition-colors"
+              title="Сравнение">
+                <CopyPlus className="w-5 h-5" />
+              </button>
+              
+              <button className="p-2 hover:bg-gray-50
+              rounded-lg transition-colors"
+              title="Сообщения">
+                <MessageSquare className="w-5 h-5" />
+              </button>
+              
+              {/* Избранное (Сердечко) со счетчиком */}
+              <Link to="/favorites" className="relative p-2 hover:bg-gray-50 rounded-lg transition-colors inline-block" title="Избранное">
+                <Heart className={`w-5 h-5 ${favorites.length > 0 ? 'fill-blue-600' : ''}`} />
+                {favorites.length > 0 && (
+                  <span className="absolute top-1 right-1 bg-blue-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                    {favorites.length}
+                  </span>
+                )}
+              </Link>
+              
+              <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors" title="Сохраненные поиски">
+                <SearchCode className="w-5 h-5" />
+              </button>
+              
+              <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors" title="Уведомления">
+                <Bell className="w-5 h-5" />
+              </button>
+              </div>
+            </div>
+
+            {/* Кнопка размещения */}
+            <button className="inline-flex items-center
+            gap-1 bg-blue-600 hover:bg-blue-700
+            active:bg-blue-800 text-white text-xs
+            sm:text-sm font-semibold px-4 py-2
+            rounded-xl transition-all shadow-sm
+            whitespace-nowrap">
+              <Plus className="w-4 h-4 stroke-[3]" />
+              <span>Разместить за 0 ₽</span>
+            </button>
+
+            {/* Заглушка под Аватар пользователя */}
+            
+          </div>
+          {/* НИЖНЯЯ ПАНЕЛЬ: Навигационные ссылки */}
+        <div className="h-10 flex items-center
+        border-t border-gray-50 overflow-x-auto
+        no-scrollbar whitespace-nowrap">
+          <nav className="flex items-center
+          gap-6 text-xs sm:text-sm font-medium
+          text-gray-600 py-1">
+            <a href="#" 
+            className="text-gray-600
+            hover:text-blue-600 font-medium
+            border-b-2 border-transparent
+            hover:border-blue-600 pb-2
+            translate-y-[1px]">Аренда</a>
+            <a href="#" 
+            className="text-gray-600
+            hover:text-blue-600 font-medium
+            border-b-2 border-transparent
+            hover:border-blue-600 pb-2
+            translate-y-[1px]">Продажа</a>
+            <a href="#" 
+            className="text-gray-600
+            hover:text-blue-600 font-medium
+            border-b-2 border-transparent
+            hover:border-blue-600 pb-2
+            translate-y-[1px]">Новостройки</a>
+            <a href="#" 
+            className="text-gray-600
+            hover:text-blue-600 font-medium
+            border-b-2 border-transparent
+            hover:border-blue-600 pb-2
+            translate-y-[1px]">Дома и участки</a>
+            <a href="#" 
+            className="text-gray-600
+            hover:text-blue-600 font-medium
+            border-b-2 border-transparent
+            hover:border-blue-600 pb-2
+            translate-y-[1px]">Коммерческая</a>
+            <a href="#" 
+            className="text-gray-600
+            hover:text-blue-600 font-medium
+            border-b-2 border-transparent
+            hover:border-blue-600 pb-2
+            translate-y-[1px]">Ипотека</a>
+          </nav>
+        </div>
+        </div>
+
+        
+    </header>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="w-full min-h-screen bg-gray-50 pt-32">
+        <NavigationBar />
+        <main className="w-full">
+          <Outlet />
+        </main>
+      </div>
+    </QueryClientProvider>
+  );
+}
+
+export default App;

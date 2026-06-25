@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import {ArrowLeft, CircleUserRound, SearchX } from 'lucide-react'; 
-import {mockOffers} from '../mockOffers';
+import {ArrowLeft, CircleUserRound, SearchX, Heart, MapPin, EyeOff } from 'lucide-react'; 
 import { YMaps, Map } from '@pbe/react-yandex-maps';
+import { useFavorites } from '../hooks/useFavorites'; 
 
 export default function SearchResultPage() {
   const [itemList, setItemList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFirstLoadDone, setIsFirstLoadDone] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [isLongTerm, setIsLongTerm] = useState(true);
@@ -18,6 +19,7 @@ export default function SearchResultPage() {
   const realtyType = searchParams.get('realty_type') || '';
 
    useEffect(() => {
+    const controller = new AbortController();
     // Делаем запрос к MockAPI, передавая параметр поиска, который мы кликнули
     const fetchFilteredresults = async () => {
       try {
@@ -29,16 +31,15 @@ export default function SearchResultPage() {
         if (dealType) params.append('deal_type', dealType);
         if (realtyType) params.append('realty_type', realtyType);
 
-        const url = `https://minofev.tech{params.toString()}`;
+        const url = `https://student-college-api.minofev.tech/api/ads?${params.toString()}`;
         console.log("React отправляет запрос по адресу:", url);
 
-        const response = await fetch(url);
+        const response = await fetch(url, { signal: controller.signal });
         const results = await response.json();
 
+        console.log(response)
         if (results && Array.isArray(results.data)) {
         setItemList(results.data); 
-      } else {
-        setItemList([]);
       }
 
       } catch (error) {
@@ -52,6 +53,7 @@ export default function SearchResultPage() {
 
     if (searchQuery.trim() !== '' || dealType || realtyType) {
       fetchFilteredresults();
+      return () => controller.abort();
     }
   }, [searchQuery, dealType, realtyType]);
 
@@ -66,19 +68,14 @@ export default function SearchResultPage() {
     setSearchParams({
     // Скопировал с помощью сприд оператора значения что бы вручную не вводить кадждое 
     ...Object.fromEntries(searchParams), 
-    action: newAction,
+    deal_type: newAction,
     type: searchParams.get('type') || 'flat', 
     //dayPriceRent: searchParams.get('dayPriceRent') || 'flat',
   });
 };
 
-  //Буду применять фильтр для исключительных значений типа "rent" || "buy"
-  const filteredOffers = mockOffers.filter(offer => 
-    offer.forAction.includes(action)
-  );
-
   return (
-<div className="w-full mx-auto px-12 mt-24">
+    <div className="w-full mx-auto px-12 ">
       <button 
         onClick={() => navigate(-1)} 
         className="flex items-center gap-2 text-sm
@@ -92,12 +89,12 @@ export default function SearchResultPage() {
         </h1>
         
             <div className="flex flex-col md:flex-row
-             gap-6 items-start">
+             gap-6 items-start py-6 px-4 m:px-6 relative">
               
               {/*Фильтры*/}
-            <div className="p-6 rounded-2xl flex flex-col
-            gap-5 w-full shrink-0 bg-white shadow-sm
-            relative top-0 md:sticky md:top-24 md:w-64 md:z-20">
+            <div className="p-5 w-full shrink-0 bg-white shadow-sm rounded-2xl md:sticky md:top-32 md:h-[calc(100vh-160px)] md:overflow-y-auto md:w-64 md:z-30">
+
+
 
                {/* МИНИ-КАРТА ЯНДЕКС (Встроена в самый верх фильтров) */}
               <div className=" h-80 w-full md:h-32 rounded-xl overflow-hidden shadow-sm border border-gray-100">
@@ -114,8 +111,9 @@ export default function SearchResultPage() {
                 </YMaps>
               </div>
 
-              <div className="flex items-center justify-between
-              border-b border-gray-50 pb-3">
+              <div className="flex items-center
+              justify-between border-b
+              border-gray-50 pb-3 ">
                 <h3 className="font-bold text-gray-900 
                 text-base">Фильтры</h3>
                 <button 
@@ -287,7 +285,7 @@ export default function SearchResultPage() {
                     to={`/property/${offer.ad_id}`} // 3. Упростили динамический URL
                     className="block hover:shadow-lg transition-shadow rounded-2xl bg-white overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4">
                       
                       {/* Блок для изображения */}
                       <div className="relative h-48 md:h-full min-h-48 bg-gray-100 flex items-center justify-center text-gray-400">
@@ -328,22 +326,16 @@ export default function SearchResultPage() {
                       </div>
                       
                       {/* Блок с текстовой информацией */}
-                      <div className="p-4 flex flex-col justify-center text-left">
+                      <div className="p-4 flex flex-col justify-center text-left md:col-span-2">
                         <div className="text-2xl font-semibold text-gray-900">
-                          {/* 4. Заменили offer.rooms -> room_count; offer.area -> area_total */}
                           {offer.room_count}-комн. квартира, {offer.area_total} м², {offer.floor} эт.
                         </div>
                         <div className="text-xs text-gray-400 mt-2">
                           {offer.address || 'Адрес не указан'}
                         </div>
                         <div className="text-xl font-semibold text-gray-900 mt-2">
-                          {/* 5. На бэкенде цена лежит в offer.price. Форматируем её красиво */}
                           {Number(offer.price).toLocaleString()} ₽
-                          
-                          {/* 6. Поле deal_type подскажет, продажа это (sale) или аренда (rent) */}
                           {offer.deal_type === 'rent' && <span className="text-sm font-normal text-gray-500"> / мес.</span>}
-
-                          {/* Блок условий, если это аренда */}
                           {offer.deal_type === 'rent' && (
                             <div className="text-xs text-gray-400 font-normal mt-1">
                               Залог: {offer.deposit ? `${Number(offer.deposit).toLocaleString()} ₽` : 'нет'}
@@ -358,7 +350,40 @@ export default function SearchResultPage() {
                       </div>
 
                       {/* Блок автора (на бэкенде Александра данные автора лежат прямо в объекте) */}
-                      <div className="p-4 flex flex-col justify-center text-left border-t md:border-t-0 md:border-l border-gray-50">
+                      <div className="p-4 flex flex-row md:flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 relative">
+                         <div className="flex md:flex-col gap-2 text-gray-400 md:absolute md:top-4 md:right-4">
+                            {/* Добавить в избранное (Сердечко завязано на твой хук useFavorites) */}
+                            <button 
+                              onClick={(e) => {
+                                e.preventDefault(); // Предотвращает переход по ссылке карточки
+                                toggleFavorite(offer.ad_id);
+                              }}
+                              className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors text-gray-400 hover:text-red-500 group"
+                              title="Добавить в избранное"
+                            >
+                              <Heart className={`w-5 h-5 ${isFavorite(offer.ad_id) ? 'fill-red-500 text-red-500' : ''}`} />
+                            </button>
+
+                            {/* Показать на карте */}
+                            <button 
+                              onClick={(e) => e.preventDefault()} 
+                              className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors hover:text-blue-600"
+                              title="Показать на карте"
+                            >
+                              <MapPin className="w-5 h-5" />
+                            </button>
+
+                            {/* Скрыть объявление */}
+                            <button 
+                              onClick={(e) => e.preventDefault()} 
+                              className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors hover:text-gray-600"
+                              title="Скрыть"
+                            >
+                              <EyeOff className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                      <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-0 md:mt-16 w-full text-left">
                         <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden">
                           {offer.user?.avatar ? (
                             <img src={offer.user.avatar} alt="Аватар" className="w-full h-full object-cover" />
@@ -376,13 +401,13 @@ export default function SearchResultPage() {
                           Посмотреть все объекты
                         </span>
                       </div>
-
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-            ) : (
+                    </div> 
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
             isFirstLoadDone && (
               <div className="flex flex-col items-center
               justify-center py-20 text-center p-8 w-full h-screen">
