@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {ArrowLeft, CircleUserRound, SearchX, Heart, MapPin, EyeOff } from 'lucide-react'; 
 import { YMaps, Map } from '@pbe/react-yandex-maps';
-import { useFavorites } from '../hooks/useFavorites'; 
+import { useFavorites } from '../hooks/useFavorites';
 
 export default function SearchResultPage() {
   const [itemList, setItemList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFirstLoadDone, setIsFirstLoadDone] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,6 +19,7 @@ export default function SearchResultPage() {
 
    useEffect(() => {
     const controller = new AbortController();
+    let isMounted = true;
     // Делаем запрос к MockAPI, передавая параметр поиска, который мы кликнули
     const fetchFilteredresults = async () => {
       try {
@@ -36,28 +36,40 @@ export default function SearchResultPage() {
 
         const response = await fetch(url, { signal: controller.signal });
         const results = await response.json();
+        console.log(results)
 
         console.log(response)
         if (results && Array.isArray(results.data)) {
         setItemList(results.data); 
+      } else {
+        setItemList([]);
       }
+    
 
       } catch (error) {
         console.error("Ошибка поиска:", error);
-        setItemList([]);
+        if (isMounted) setItemList([]);
       } finally {
-        setIsLoading(false);
-        setIsFirstLoadDone(true)
+        if (isMounted) setIsLoading(false);
       }
     };
 
     if (searchQuery.trim() !== '' || dealType || realtyType) {
       fetchFilteredresults();
-      return () => controller.abort();
+    } else {
+    // Нет параметров - сразу показываем пустой результат
+    if (isMounted) {
+      setIsLoading(false);
+      setItemList([]);
     }
+  }
+  return () => {
+    isMounted = false;
+    controller.abort();
+  };
   }, [searchQuery, dealType, realtyType]);
 
-
+  
 
   // текущий тип сделки
   const action = searchParams.get('action') || 'buy'; 
@@ -83,18 +95,19 @@ export default function SearchResultPage() {
       >
         <ArrowLeft className="w-4 h-4" /> Назад
       </button>
-    
-        <h1>
-          {searchQuery}
-        </h1>
+
+      <h1 className="text-2xl font-bold mt-4">
+        {searchQuery ? `Результаты по запросу: "${searchQuery}"` : 'Каталог объявлений'}
+      </h1>
         
             <div className="flex flex-col md:flex-row
              gap-6 items-start py-6 px-4 m:px-6 relative">
               
               {/*Фильтры*/}
-            <div className="p-5 w-full shrink-0 bg-white shadow-sm rounded-2xl md:sticky md:top-32 md:h-[calc(100vh-160px)] md:overflow-y-auto md:w-64 md:z-30">
-
-
+            <div className="p-5 w-full shrink-0
+            bg-white shadow-sm rounded-2xl
+            top-32 h-sreen
+            md:overflow-y-auto md:w-64 md:z-30">
 
                {/* МИНИ-КАРТА ЯНДЕКС (Встроена в самый верх фильтров) */}
               <div className=" h-80 w-full md:h-32 rounded-xl overflow-hidden shadow-sm border border-gray-100">
@@ -174,9 +187,8 @@ export default function SearchResultPage() {
                 >
                   Посуточно
                 </button>
-
               </div>
-            </div>
+              </div>
           )}
 
 
@@ -260,7 +272,6 @@ export default function SearchResultPage() {
           </div>
 
             {/*Блок с сеткой карточек*/}
-            {/* 1. ЕСЛИ ИДЕТ ЗАГРУЗКА — ПОКАЗЫВАЕМ ЛОАДЕР */}
             {isLoading ? (
               <div className="flex flex-col
               items-center justify-center
@@ -270,9 +281,17 @@ export default function SearchResultPage() {
                 <p className="text-gray-500 text-sm font-medium">Ищем подходящие объявления...</p>
               </div>
             ) : (
-              /* 2. ЕСЛИ ЗАГРУЗКА ЗАВЕРШЕНА, ПРОВЕРЯЕМ НАЛИЧИЕ ЭЛЕМЕНТОВ */
-              <>
-              {itemList.length > 0 ? (
+              itemList.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center p-8 w-full h-screen">
+                      <SearchX className="w-16 h-16 text-gray-400" />
+                      <h3 className="text-lg font-semibold text-gray-600">Ничего не найдено</h3>
+                      <p className="text-gray-400 text-sm max-w-xs mt-1">
+                        Попробуйте изменить запрос или скорректировать фильтры поиска
+                      </p>
+                    </div>
+                
+              ) : (
+                /* СЦЕНАРИЙ 3: Элементы найдены! Рендерим ваш список из 20 объектов */
             <div className='flex-1 flex flex-col gap-4'>
               {itemList?.map(offer => {
                 const photos = offer.photo_storage || [];
@@ -285,10 +304,14 @@ export default function SearchResultPage() {
                     to={`/property/${offer.ad_id}`} // 3. Упростили динамический URL
                     className="block hover:shadow-lg transition-shadow rounded-2xl bg-white overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-4">
+                    <div className="grid grid-cols-1
+                    md:grid-cols-4">
                       
                       {/* Блок для изображения */}
-                      <div className="relative h-48 md:h-full min-h-48 bg-gray-100 flex items-center justify-center text-gray-400">
+                      <div className="relative h-48
+                      md:h-full md:col-span-1 min-h-48 
+                      bg-gray-100 flex items-center
+                      justify-center text-gray-400">
                         {/* Главная картинка объекта */}
                         {mainPhoto ? (
                           <img 
@@ -326,7 +349,8 @@ export default function SearchResultPage() {
                       </div>
                       
                       {/* Блок с текстовой информацией */}
-                      <div className="p-4 flex flex-col justify-center text-left md:col-span-2">
+                      <div className="p-4 flex flex-col
+                      justify-center text-left md:col-span-2">
                         <div className="text-2xl font-semibold text-gray-900">
                           {offer.room_count}-комн. квартира, {offer.area_total} м², {offer.floor} эт.
                         </div>
@@ -349,9 +373,37 @@ export default function SearchResultPage() {
                         </div>
                       </div>
 
-                      {/* Блок автора (на бэкенде Александра данные автора лежат прямо в объекте) */}
-                      <div className="p-4 flex flex-row md:flex-col justify-between items-center md:items-end border-t md:border-t-0 md:border-l border-gray-100 relative">
-                         <div className="flex md:flex-col gap-2 text-gray-400 md:absolute md:top-4 md:right-4">
+                      
+
+                      {/* Блок автора*/}
+                      <div className="p-4 flex flex-row
+                      md:flex-col justify-start items-start
+                      md:items-end border-t md:border-t-0
+                      md:border-l border-gray-100 relative">
+                      
+                          <div className="flex flex-col
+                      items-start md:items-start gap-3
+                      w-full text-left">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden">
+                          {offer.user?.avatar ? (
+                            <img src={offer.user.avatar} alt="Аватар" className="w-full h-full object-cover" />
+                          ) : (
+                            <CircleUserRound className="w-8 h-8 text-gray-600" />
+                          )}
+                        </div>
+                        <div className="text-sm font-medium text-gray-700 mt-3">
+                          {offer.user?.name || 'Менеджер'}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {offer.user?.role === 'agent' ? 'Агентство' : 'Собственник'}
+                        </div>
+                        <span className="mt-4 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                          Посмотреть все объекты
+                        </span>
+                      </div>
+                         <div className="flex md:flex-col
+                         gap-2 text-gray-400 md:absolute
+                         md:top-4 md:right-4">
                             {/* Добавить в избранное (Сердечко завязано на твой хук useFavorites) */}
                             <button 
                               onClick={(e) => {
@@ -370,7 +422,7 @@ export default function SearchResultPage() {
                               className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors hover:text-blue-600"
                               title="Показать на карте"
                             >
-                              <MapPin className="w-5 h-5" />
+                 <MapPin className="w-5 h-5" />
                             </button>
 
                             {/* Скрыть объявление */}
@@ -381,47 +433,16 @@ export default function SearchResultPage() {
                             >
                               <EyeOff className="w-5 h-5" />
                             </button>
-                          </div>
-
-                      <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-0 md:mt-16 w-full text-left">
-                        <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors overflow-hidden">
-                          {offer.user?.avatar ? (
-                            <img src={offer.user.avatar} alt="Аватар" className="w-full h-full object-cover" />
-                          ) : (
-                            <CircleUserRound className="w-8 h-8 text-gray-600" />
-                          )}
-                        </div>
-                        <div className="text-sm font-medium text-gray-700 mt-2">
-                          {offer.user?.name || 'Менеджер'}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {offer.user?.role === 'agent' ? 'Агентство' : 'Собственник'}
-                        </div>
-                        <span className="mt-4 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
-                          Посмотреть все объекты
-                        </span>
-                      </div>
+                          </div>  
                     </div> 
                   </div>
                 </Link>
               );
             })}
           </div>
-        ) : (
-            isFirstLoadDone && (
-              <div className="flex flex-col items-center
-              justify-center py-20 text-center p-8 w-full h-screen">
-                <SearchX className="w-16 h-16 text-gray-400" />
-                <h3 className="text-lg font-semibold text-gray-600">Ничего не найдено</h3>
-                <p className="text-gray-400 text-sm max-w-xs mt-1">
-                  Попробуйте изменить запрос или скорректировать фильтры поиска
-                </p>
-              </div>
-            )
-          )}
-        </>
-      )}
-    </div>
+          )
+        )}
+  </div>
 </div>
-)
+  );
 }

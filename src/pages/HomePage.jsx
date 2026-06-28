@@ -1,16 +1,21 @@
 import '../index.css';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2  } from 'lucide-react'; 
+import { ArrowRight, Loader2, MapPin } from 'lucide-react'; 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+
 import { fetchCoordinates } from '../api/geocode';
 import {useDebounce} from '../hooks/useDebounce'
 import { useAds } from '../hooks/useAds'; 
+import {SelectLocation} from './SelectLocation'; 
 
 function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const navigate = useNavigate();
+
+  const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+  const [currentCity, setCurrentCity] = useState('Москва и МО');
   
   const RecomendatedSearch = [
     { id: 1, text: "Купить квартиру", deal_type: "sale", realty_type: "flat" },
@@ -41,18 +46,35 @@ console.log('debouncedSearchTerm:', debouncedSearchTerm);
 
   return (
     <>
-      <div className="w-full min-h-screen bg-gray-50 relative">
+      <div className="w-full min-h-screen
+       bg-gray-50 z-10 relative">
         <div className='w-full h-[90vh] -mt-32
         relative overflow-hidden flex flex-col
         items-center justify-center px-4'>
+
+          <button className='absolute top-36
+          left-8 z-30 pointer-events-auto
+          flex items-center gap-2
+          bg-black/40 hover:bg-black/50
+          backdrop-blur-sm px-4 py-2
+          rounded-full shadow-lg '
+          onClick={() => setIsCityModalOpen(true)}
+          >
+  <MapPin className="w-4 h-4 text-white " />
+  <p className="text-sm font-medium text-white">{currentCity}</p>
+  
+</button>
+
+
+
           <img 
   src="src/assets/main-banner-new-brand.jpg" 
   className="absolute inset-0 w-full h-full object-cover z-0" 
   alt="Главный баннер" 
 />
 {/* Слой затемнения */}
-<div className="absolute inset-0 bg-black/10 z-1 pointer-events-none" />
-            <h1 className='text-white text-5xl z-1 font-semibold '>
+<div className="absolute inset-0 bg-black/10 z-10 pointer-events-none" />
+            <h1 className='text-white text-5xl z-20 font-semibold '>
               Поиск недвижимости на Floors
             </h1>
           <div className="w-full max-w-3xl
@@ -163,6 +185,11 @@ console.log('debouncedSearchTerm:', debouncedSearchTerm);
 
         </div>
       </div>
+      <SelectLocation 
+        isOpen={isCityModalOpen} 
+        onClose={() => setIsCityModalOpen(false)} 
+        onSelectCity={(city) => setCurrentCity(city)}
+      />
     </>
   );
 }

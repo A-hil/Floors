@@ -1,4 +1,3 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Outlet, Link } from 'react-router-dom';
 import { 
   Sparkles, 
@@ -12,15 +11,6 @@ import {
 import { useFavorites } from './hooks/useFavorites';
 import './App.css';
 import './index.css';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      retry: 1,
-    },
-  },
-});
 
 function NavigationBar() {
   const { favorites } = useFavorites();
@@ -42,7 +32,7 @@ function NavigationBar() {
             <img 
               src="../src/assets/Floors_icon.png" 
               alt="Логотип Floors"
-              className="h-24 w-auto object-contain" 
+              className="h-11 w-auto object-contain" 
             />
           </Link>
 
@@ -165,14 +155,13 @@ function NavigationBar() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
       <div className="w-full min-h-screen bg-gray-50 pt-32">
         <NavigationBar />
+
         <main className="w-full">
           <Outlet />
         </main>
       </div>
-    </QueryClientProvider>
   );
 }
 
